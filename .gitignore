@@ -1,0 +1,7 @@
+.env
+node_modules
+.DS_Store*
+.idea
+*.log
+config/deploy
+.hubot_history

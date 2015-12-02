@@ -1,0 +1,47 @@
+#!/bin/sh
+#/etc/init.d/ytbot
+
+DIR=/home/pi/herold/ytbot
+DAEMON=bin/hubot
+ENVFILE=$DIR/.env
+DAEMON_NAME=ytbot
+DAEMON_OPTS="--adapter slack"
+USER=root
+
+LOGFILE=/var/log/$DAEMON_NAME.log
+PIDFILE=/var/run/$DAEMON_NAME.pid
+
+do_start () {
+    . $ENVFILE
+    exec forever start \
+        --append \
+        --minUptime 2000 \
+        --spinSleepTime 4000 \
+        --sourceDir=$DIR \
+        --pidFile $PIDFILE \
+        -o $LOGFILE \
+        -c /bin/sh $DAEMON $DAEMON_OPTS 2>&1
+}
+
+do_status () {
+    (forever list | grep `cat $PIDFILE`) 1>/dev/null 2>&1 && (echo "$DAEMON_NAME is running."; return 0) || (echo "$DAEMON_NAME is stopped."; return $?)
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        exec forever stop --sourceDir=$DIR $DAEMON
+        ;;
+    status)
+        do_status
+        exit $?
+        ;;
+    *)
+        echo "Usage: /etc/init.d/nodeup {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0
